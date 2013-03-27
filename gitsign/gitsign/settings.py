@@ -1,5 +1,7 @@
 # Django settings for gitsign project.
 
+from local_settings import * 
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -121,9 +123,24 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
+    'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'social_auth',
+)
+
+LOGIN_URL          = '/login-form/'
+LOGIN_REDIRECT_URL = '/logged-in/'
+LOGIN_ERROR_URL    = '/login-error/'
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/another-login-url/'
+
+
+
+
+GITHUB_EXTENDED_PERMISSIONS =[]
+
+AUTHENTICATION_BACKENDS = (
+    'social_auth.backends.contrib.github.GithubBackend',
 )
 
 # A sample logging configuration. The only tangible logging
