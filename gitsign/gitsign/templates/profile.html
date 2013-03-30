@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block head %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="http://underscorejs.org/underscore-min.js"></script>
+<script src="http://backbonejs.org/backbone-min.js"></script>
+<script src="https://rawgithub.com/sirmmo/backbone-tastypie-modelgenerator/master/backbone.tastypie.modelgenerator.js"></script>
+
+{% endblock head %}
+{% block header %}{% endblock header %}
+{% block content%}
+
+<div id="profile_info">
+	{{user.username}}, {{user.email}}, {{user.avatar}} - {{instance}}
+</div>
+
+{% endblock content %}

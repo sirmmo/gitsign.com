@@ -4,12 +4,16 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 admin.autodiscover()
 
+from core.api import gitsign_api
+
 urlpatterns = patterns('',
     # Examples:
-    url(r'^$', 'gitsign.views.home', name='home'),
+    url(r'^$', 'interface.views.index', name='home'),
     url(r'', include('social_auth.urls')),
-    # url(r'^gitsign/', include('gitsign.foo.urls')),
 
+
+    url(r'^profile/', 'interface.views.profile', name="profile"),
+    url(r'^api/', include(gitsign_api.urls)),
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
