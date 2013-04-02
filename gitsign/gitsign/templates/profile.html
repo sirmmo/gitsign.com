@@ -1,16 +1,296 @@
 {% extends "base.html" %}
 {% block head %}
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
 <script src="http://underscorejs.org/underscore-min.js"></script>
 <script src="http://backbonejs.org/backbone-min.js"></script>
-<script src="https://rawgithub.com/sirmmo/backbone-tastypie-modelgenerator/master/backbone.tastypie.modelgenerator.js"></script>
+<script src="https://rawgithub.com/nealstewart/backbone.validations/master/backbone.validations.js"></script>
+<script src="https://rawgithub.com/sirmmo/backbone-tastypie-modelgenerator/novalidation/backbone.tastypie.modelgenerator.novalidation.js"></script>
+<script src="https://rawgithub.com/bgrins/spectrum/master/spectrum.js"></script>
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+<script src="https://rawgithub.com/usablica/intro.js/master/minified/intro.min.js"></script>
+<script src="https://rawgithub.com/HenrikJoreteg/ICanHaz.js/master/ICanHaz.min.js"></script>
+<link rel="stylesheet" href="https://rawgithub.com/bgrins/spectrum/master/spectrum.css">
+<link rel="stylesheet" href="https://rawgithub.com/usablica/intro.js/master/minified/introjs.min.css">
+<!--[if lte IE 8]>
+<link rel="stylesheet" href="https://rawgithub.com/usablica/intro.js/master/minified/introjs-ie.min.css">
+<!-- <![endif]-->
+<style>
+#repos{
+	width:450px;
+	float:right;
+}
+#signs{
+	width:250px;
+	float:left;
+}
+
+.header-icon{
+	position:relative;
+	top:10px;	
+}
+
+.sign{
+	width:100%;
+	clear:both;
+	height:20px;
+	display:block;
+	font-size:0.7em;
+}
+
+.repo{
+	padding-bottom:5px;
+	padding-top:5px;
+}
+
+.info{
+	font-size:0.8em;
+}
+.title{
+	font-size:1.1em;
+}
+
+.main {
+	float:left;
+}
+.tools{
+	float:right;
+	margin-right:15px;
+	position:relative;
+	margin-top:2px;
+}
+#profile_info{
+	padding-top:5px;
+	padding-bottom:5px;
+}
+#profile_icon{
+	float:left;
+	width:80px;
+	height:80px;
+	display:block;
+}
+
+#profile_data{
+	margin-left:5px;
+	float:left;
+	display:block;
+}
+
+#profile_close{
+	clear:both;
+}
+
+
+</style>
+
+<script>
+
+function refresh_signs(temp){
+	setTimeout(function(){
+
+	$.getJSON('/u/{{user.username}}/j/signs', function(data){
+		$('#signs .added').remove();
+		for (var x in data){
+			data[x]['json'] = JSON.stringify(data[x])
+			ich.sign_temp(data[x]).appendTo($('#signs'));
+		}
+		$('.tools').hide();
+
+		$('.sign .main').draggable({
+			helper:'clone'
+		});
+
+	});
+},temp);
+}
+
+
+$(function(){
+
+	refresh_signs(0);
+	$.getJSON('/u/{{user.username}}/j/repos{%if sign %}/{{sign}}{%endif%}', function(data){
+		if (data.length > 0)
+			$('.placeholder').remove();
+		for(var i in data){
+			ich.repo_temp(data[i]).appendTo($('#repos'));
+		}
+		$('.repo').droppable({
+		'accept':'.sign .main',
+		'drop':function(event, ui ){
+			r = new Reposign();
+			r.set({repo:$(this).data('repo'), sign:$(ui.draggable).data('sign')})
+			r.save();
+			ddata = $(ui.draggable).data('json');
+			ddata['rid'] = $(this).data('repo');
+			ddata['sid'] = ddata['id'];
+			$(this).find('.signs').append(ich.sign_line_temp(ddata ));
+			refresh_signs(100);
+		}
+	});
+	});
+
+	{% if editable %}
+	Backbone.LoadModelsFromUrl("/api/stargaze/");
+
+	$(window.document).on('mouseenter', '.sign',function(){
+		$(this).find('.tools').show('fast');
+	});
+	$(window.document).on('mouseleave', '.sign', function(){
+		$(this).find('.tools').hide('fast');
+	});
+
+
+	$('#add_sign').click(function(){
+		s = new Sign();
+		s.set({name : $('#sign_name').val()});
+		s.save();
+		$('#sign_name').val("");
+		refresh_signs(150);
+		
+	});
+	
+	$('#update').click(function(){
+		$.get('/update', function(data){
+			alert('Updating...');
+		});
+	});
+
+	$('#help').click(function(){
+
+		introJs().start();
+
+	});
+
+	$(window.document).on('click', '.op_delete', function(){
+		sign_id=$(this).data('sign');
+		self = $(this);
+		$.ajax({
+			url:'/api/stargaze/sign/'+sign_id + "/",
+			method:'DELETE',
+			success:function(){
+				$(self).parent().parent().remove();
+			}
+		});
+		
+	});
+
+	$(window.document).on('click', '.op_remove', function(){
+		self = $(this);
+		$.ajax({
+			url:'/u/{{user.username}}/o/unsign',
+			method:"GET",
+			data:{
+				sid:$(this).data('sid'),
+				rid:$(this).data('rid')
+			},
+			success:function(){
+				$(self).parent().remove();
+				refresh_signs(0);
+			}
+		});
+
+		
+	});
+
+	{% endif %}
+	
+	$('.tools').hide();
+
+	$(window).scroll(function(){ // scroll event
+ 
+		var windowTop = $(window).scrollTop(); // returns number
+ if (120 < windowTop) {
+      $('#signs').css({ position: 'fixed', top: 0 });
+    }
+    else {
+      $('#signs').css('position','relative');
+    }
+	});
+});
+
+</script>
+<script id="sign_temp" type="text/html">
+	<div class="sign added" >
+		<span class="main" data-json="{% templatetag openvariable %}json{% templatetag closevariable %}" data-sign="{% templatetag openvariable %} id{% templatetag closevariable %}"><a href="/u/{{user.username}}/{% templatetag openvariable %}slug{% templatetag closevariable %}">{% templatetag openvariable %}name{% templatetag closevariable %}</a></span><span>({% templatetag openvariable %}amount{% templatetag closevariable %})</span>
+		{% if editable %}
+		<span class="tools"><i title="delete" class="icon-remove-sign op_delete" data-sign="{% templatetag openvariable %}id{% templatetag closevariable %}"></i></span>
+		<span class="tools"><i title="settings" class="icon-cog op_setup" data-sign="{% templatetag openvariable %}id{% templatetag closevariable %}"></i></span>	
+		{% endif %}
+	</div>
+</script>
+
+<script id="repo_temp" type="text/html">
+	<div class="repo" data-repo="{% templatetag openvariable %}id{% templatetag closevariable %}">
+		<div class="title"><a target="_blank" href="{% templatetag openvariable %}page}}">{% templatetag openvariable %}name{% templatetag closevariable %}</a></div>
+		<div class="info">
+			<span class="owner">{% templatetag openvariable %}owner{% templatetag closevariable %}</span>
+			<span class="owner_type {% templatetag openvariable %}owner_type{% templatetag closevariable %}"></span>
+			<span class="forks" title="Forks">{% templatetag openvariable %}forks{% templatetag closevariable %}</span>
+			<span class="watchers" title="Watchers">{% templatetag openvariable %}watchers{% templatetag closevariable %}</span>
+		</div>
+		<div class="info">{% templatetag openvariable %}created}} - {% templatetag openvariable %}updated}}</div>
+		<div class="info signs">
+		{% templatetag openvariable %}#signs{% templatetag closevariable %}
+			{% templatetag openvariable %}>sign_line_temp{% templatetag closevariable %}
+		{% templatetag openvariable %}/signs{% templatetag closevariable %}
+		</div>
+	</div>
+
+</script>
+
+<script id="sign_line_temp" type="text/html">
+	<span>
+		<span class="assigned_sign" data-color="{% templatetag openvariable %}color{% templatetag closevariable %}">
+			<a href="/u/{{user.username}}/{% templatetag openvariable %}slug{% templatetag closevariable %}">
+				{% templatetag openvariable %}name{% templatetag closevariable %}
+			</a>
+		</span>
+		<i 
+			title="remove" 
+			class="icon-remove-sign op_remove" 
+			data-eid="{% templatetag openvariable %}eid{% templatetag closevariable %}"
+			data-sid="{% templatetag openvariable %}sid{% templatetag closevariable %}"
+			data-rid="{% templatetag openvariable %}rid{% templatetag closevariable %}">
+		</i>
+	</span>
+</script>
 
 {% endblock head %}
-{% block header %}{% endblock header %}
+{% block header %}
+
+	{% if editable %}
+		<i id="update" title="Refresh data" class="header-icon icon-refresh" data-intro='This button enables you to update all your new stars.' data-step='5'></i>
+		<i id="help" title="Help" class="header-icon icon-question-sign" data-intro='This button starts the intro, if you should ever get dizzy.' data-step='6'></i>
+	{% endif %}
+
+{% endblock header %}
 {% block content%}
 
-<div id="profile_info">
-	{{user.username}}, {{user.email}}, {{user.avatar}} - {{instance}}
+
+<div data-intro='This is your data, taken directly from GitHub. If you want to change the info, you have to do it there, and then update here.' data-step='2'>
+<div id="profile_info" >
+	<div id="profile_icon"><img width="80" height="80" src="{{user_profile.avatar}}"></div>
+	<div id="profile_data">
+		<div id="profile_username"><a href="{{user_profile.url}}" target="_blank">{{user.username}}</a></div>
+		<div id="profile_full_name">{{user_profile.name}}</div>
+		<div id="profile_email">{{user.email}}</div>
+	</div>
 </div>
+<div id="profile_close"></div>
+</div>
+<div id="signs" data-position="top" data-intro='Here are your signs! To create new ones, write a title and press the "+" button. To assign them to repos, drag them over to the repo you want to tag.' data-step="3">
+	{% if editable %}
+	<div>Add Sign:<div class="input-append">
+		<input type="text" style="font-size:normal;" class="span2" id="sign_name"></input><button class="btn" id="add_sign">+</button>
+	
+	</div></div>
+	{% endif %}
+	<div class="sign">
+		<span class="main"><a href="/u/{{user.username}}">All Signs</a></span>
+	</div>
+</div>
+<div id="repos" data-intro='Here be repos!' data-step='4' data-position="top">
+	<span class="placeholder">No repos here, or maybe they are just loading...</span>
+</div>
+
 
 {% endblock content %}

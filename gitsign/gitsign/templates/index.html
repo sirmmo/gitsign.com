@@ -1,10 +1,91 @@
 {% extends "base.html" %}
-			{% block header %}
-<div id="login" class="right"><a href="/login/github"><i class="icon-github"></i><span>Login with GitHub</span></a></div>
+
+			{% block head %}
+<style>
+#image{
+	width:100%;
+	height:200px;
+	background-color:#160768;
+	background-image:url(https://dl.dropbox.com/u/355421/starry.jpg);
+}
+
+center{
+	margin-top:10px;
+	margin-bottom:10px;
+}
+
+
+
+.user{
+	display:block;
+	float:left;
+	margin-left:10px;
+	margin-right:10px;
+	width:90px;
+	height:102px;
+	border:1px solid #ddd;
+	padding-top:5px;
+}
+
+#user_close{
+clear:both;
+}
+</style>
+<script>				
+</script>
+			{% endblock %}
+
+
+{% block intro %}
+<div id="image">
+	
+</div>
+{% endblock %}
+
+
+{% block header %}
 
 {% endblock header %}
 
 
 
 
-		{% block content%}{% endblock content %}
+		{% block content%}
+
+
+<center>
+<div class="center">Lost in 1000 stars on  our beloved github?</div>
+<div class="center">Thinking of cutting your ear looking for that library?</div>
+<div class="center">GitSign helps you manage your stars and organize them into the starsigns they belong to! You just need to</div>
+<div class="center btn" id="login-button"><a href="/login/github/"><i class="icon-github"></i><span>Login with GitHub</span></a></div>
+</center>
+<center>
+</center>
+
+<center>
+<h2>Who's using this?</h2>
+<div class="center">Already managing {{repos}} repos for {{users}} users with {{signs}} signs</div>
+<div class="center"><a href="/login/github/"><span>Be a new user and bring your repos to the table!</span></a></div>
+<div class="center">
+<center>
+{%for user in latest_users%}
+<div class="user">
+	<div class="icon"><img src="{{user.avatar}}" width="80" height="80"></div>
+	<div class="username"><a href="/u/{{user.user.username}}">{{user.user.username}}</a></div>
+</div>
+{%endfor%}
+<div id="user_close"></div>
+</center>
+</div>
+</center>
+
+<center>
+<h2>Want to help?</h2>
+<div class="center">
+<div>
+<div>If you just want to signal an issue, there's the <a href="https://github.com/sirmmo/gitsign.com/issues">Github Issue list</a>; </div>
+<div>If you want to supply code, <a href="https://github.com/sirmmo/gitsign.com">fork</a> the repo, edit the code and send me a pull request;</div> 
+<div>If you jut want to show appreciation, you can add something to <a href="https://www.gittip.com/sirmmo/">gittip</a>!</div>
+</div></div>
+</center>
+		{% endblock content %}

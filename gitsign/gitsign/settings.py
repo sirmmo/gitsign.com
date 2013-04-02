@@ -7,6 +7,7 @@ PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+APPEND_SLASH = False
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -137,7 +138,7 @@ INSTALLED_APPS = (
 LOGIN_URL          = '/login-form/'
 LOGIN_REDIRECT_URL = '/logged-in/'
 LOGIN_ERROR_URL    = '/login-error/'
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/profile/'
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/loading'
 
 
 
