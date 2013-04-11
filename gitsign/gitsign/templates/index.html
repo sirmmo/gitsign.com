@@ -10,11 +10,21 @@
 }
 
 center{
-	margin-top:10px;
-	margin-bottom:10px;
+	margin-top:20px;
+	margin-bottom:20px;
+}
+center div{
+	margin-top:2px;
+	margin-bottom:2px;
 }
 
+.question{
+	font-size:1.1em;
+}
 
+.answer{
+	font-size:1.3em;
+	}
 
 .user{
 	display:block;
@@ -25,6 +35,7 @@ center{
 	height:102px;
 	border:1px solid #ddd;
 	padding-top:5px;
+	text-align:center;
 }
 
 #user_close{
@@ -54,18 +65,20 @@ clear:both;
 
 
 <center>
-<div class="center">Lost in 1000 stars on  our beloved github?</div>
-<div class="center">Thinking of cutting your ear looking for that library?</div>
-<div class="center">GitSign helps you manage your stars and organize them into the starsigns they belong to! You just need to</div>
-<div class="center btn" id="login-button"><a href="/login/github/"><i class="icon-github"></i><span>Login with GitHub</span></a></div>
+<div class="question">Lost in 1000 stars on your beloved <a href="https://github.com">github</a> account?</div>
+<div class="question">Thinking of cutting your ear looking for that specific library you know you saw and you know starred?</div>
+<div class="answer">GitSign helps you manage your stars and organize them into the starsigns they belong to! </div>
+<div style="font-size:0.7em">(I know it's a terrible word play, but it got me Van Gogh in the header, so hey!)</div>
+<div class="answer">You just need to</div>
+<div class="answer" id="login-button"><a href="/login/github/" class="btn btn-large"><i class="icon-github"></i><span>Login with GitHub</span></a></div>
 </center>
 <center>
 </center>
 
 <center>
 <h2>Who's using this?</h2>
-<div class="center">Already managing {{repos}} repos for {{users}} users with {{signs}} signs</div>
-<div class="center"><a href="/login/github/"><span>Be a new user and bring your repos to the table!</span></a></div>
+<div class="center">Managing {{repos}} repos for {{users}} users with {{signs}} signs</div>
+<div class="center"><a href="/login/github/" class="btn"><span>Be a new user and bring your repos to the table!</span></a></div>
 <div class="center">
 <center>
 {%for user in latest_users%}

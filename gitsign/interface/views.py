@@ -25,8 +25,8 @@ def index (request):
 
 
 def profile(request, username, sign=None):
-
-
+	loading = request.REQUEST.get('loading', None)
+		
 	if User.objects.filter(username = username).count() == 0:
 		return HttpResponseRedirect('/')
 	editable = request.user.username == username
@@ -42,6 +42,10 @@ def profile(request, username, sign=None):
 		'user_profile':UserData.objects.get(user__username=username), 
 		'repos':repos, 
 	}
+
+	if loading is not None: 
+		ctx['loading'] = True
+
 	if sign is not None:
 		ctx['sign'] = sign
 	if request.user.is_authenticated():
@@ -56,7 +60,7 @@ def loading(request):
 	username = request.user.username
 	load_user(username)
 	load_repos.delay(username)
-	return HttpResponseRedirect("/")
+	return HttpResponseRedirect("/u/" + username + "?loading=y")
 
 def signs(request, username):
 	#.values('id', 'name', 'slug', 'color')
@@ -80,8 +84,10 @@ def repos(request, username, sign=None):
 	repos_origin = Repo.objects.filter(starred_by__user__username = username)
 	if sign is not None:
 		repos_origin = repos_origin.filter(signed__sign__slug = sign)
+
+	repos_origin = repos_origin[start:end]
 	reps = [x for x in repos_origin 
-		.values("last_update", "id", "name", "owner", "owner_type", "remote", "page", "is_fork", "created", "updated", "forks", "watchers")]#[start:end]]
+		.values("last_update", "id", "name", "owner", "owner_type", "remote", "page", "is_fork", "created", "updated", "forks", "watchers")]
 	reps_new = []
 	for repo in reps:
 		repo['created'] = datetime.strftime(repo['created'], '%b %d, %Y, %I:%M %p')
@@ -107,3 +113,12 @@ def unsign(request, username):
 
 	RS.objects.get(repo__id = rid, sign__id = sid, user__username =username).delete()
 	return HttpResponse(200)
+
+def pages(request, username, sign=None):
+	repos_origin = Repo.objects.filter(starred_by__user__username = username)
+	if sign is not None:
+		repos_origin = repos_origin.filter(signed__sign__slug = sign)
+
+	repos_origin = (repos_origin.count()/30) + 1
+
+	return HttpResponse(json.dumps(repos_origin))

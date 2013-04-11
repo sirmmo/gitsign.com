@@ -9,11 +9,14 @@
 <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 <script src="https://rawgithub.com/usablica/intro.js/master/minified/intro.min.js"></script>
 <script src="https://rawgithub.com/HenrikJoreteg/ICanHaz.js/master/ICanHaz.min.js"></script>
+<script src="https://rawgithub.com/GerHobbelt/jquery-hashchange/master/jquery.ba-hashchange.js"></script>
+<script src="https://rawgithub.com/jamesflorentino/nanoScrollerJS/master/bin/javascripts/jquery.nanoscroller.min.js"></script>
 <link rel="stylesheet" href="https://rawgithub.com/bgrins/spectrum/master/spectrum.css">
 <link rel="stylesheet" href="https://rawgithub.com/usablica/intro.js/master/minified/introjs.min.css">
+<link rel="stylesheet" href="https://rawgithub.com/jamesflorentino/nanoScrollerJS/master/bin/css/nanoscroller.css">
 <!--[if lte IE 8]>
 <link rel="stylesheet" href="https://rawgithub.com/usablica/intro.js/master/minified/introjs-ie.min.css">
-<!-- <![endif]-->
+<!--[endif]-->
 <style>
 #repos{
 	width:450px;
@@ -22,6 +25,10 @@
 #signs{
 	width:250px;
 	float:left;
+	height:100%;
+	position:absolute;
+	top:130px;
+	z-index:100;
 }
 
 .header-icon{
@@ -40,6 +47,7 @@
 .repo{
 	padding-bottom:5px;
 	padding-top:5px;
+	padding-left:10px;
 }
 
 .info{
@@ -79,6 +87,21 @@
 	clear:both;
 }
 
+#pages{
+	padding-top:20px;
+	padding-bottom:10px;
+	width: 100%;
+	display: block;
+	float: right;
+	text-align: center;
+
+	clear:both;
+}
+
+.moving{
+	display:block;
+	z-index:10000;
+}
 
 </style>
 
@@ -88,26 +111,41 @@ function refresh_signs(temp){
 	setTimeout(function(){
 
 	$.getJSON('/u/{{user.username}}/j/signs', function(data){
-		$('#signs .added').remove();
+		$('#signs #add_area .added').remove();
 		for (var x in data){
 			data[x]['json'] = JSON.stringify(data[x])
-			ich.sign_temp(data[x]).appendTo($('#signs'));
+			ich.sign_temp(data[x]).appendTo($('#add_area'));
 		}
 		$('.tools').hide();
-
+		$(".nano").nanoScroller({
+			preventPageScrolling:true
+		});
 		$('.sign .main').draggable({
-			helper:'clone'
+			helper:'clone',
+			zIndex:10000,
+			stacked:'.moving'
 		});
 
 	});
 },temp);
 }
 
+GS = {};
+GS.base_url = '/u/{{user.username}}/j/repos{%if sign %}/{{sign}}{%endif%}'
+GS.page = 1;
 
-$(function(){
+$(window).hashchange( function(){
+	page = location.hash.split('#');
+	if (page.length > 1)
+		GS.page = page[1];
+	else
+		GS.page = 1;
+	load_page();
+});
 
-	refresh_signs(0);
-	$.getJSON('/u/{{user.username}}/j/repos{%if sign %}/{{sign}}{%endif%}', function(data){
+function load_page(){
+	$.getJSON(GS.base_url, {'page':GS.page} , function(data){
+		$('.repo').remove();
 		if (data.length > 0)
 			$('.placeholder').remove();
 		for(var i in data){
@@ -124,11 +162,32 @@ $(function(){
 			ddata['sid'] = ddata['id'];
 			$(this).find('.signs').append(ich.sign_line_temp(ddata ));
 			refresh_signs(100);
+			}
+		});
+	});
+}
+
+function resize(){
+		$('#signs').height($(window).height() - $('footer').height() - 1 - 85);
+	}
+$(function(){
+	$(window).hashchange();
+	$(window).on('resize', resize);
+	resize();
+	refresh_signs(0);
+
+	$.getJSON(GS.base_url +"/pages", function(data){
+		for (var i = 1; i<=data; i++){
+			ich.page_temp({'page_number':i}).appendTo($('#pages'));
 		}
 	});
-	});
-
+	{% if loading %}
+	setInterval(load_page, 5000);
+	{%endif%}
+	load_page();
+	
 	{% if editable %}
+
 	Backbone.LoadModelsFromUrl("/api/stargaze/");
 
 	$(window.document).on('mouseenter', '.sign',function(){
@@ -182,13 +241,11 @@ $(function(){
 				sid:$(this).data('sid'),
 				rid:$(this).data('rid')
 			},
-			success:function(){
+			success: function(){
 				$(self).parent().remove();
 				refresh_signs(0);
 			}
-		});
-
-		
+		});		
 	});
 
 	{% endif %}
@@ -198,12 +255,17 @@ $(function(){
 	$(window).scroll(function(){ // scroll event
  
 		var windowTop = $(window).scrollTop(); // returns number
- if (120 < windowTop) {
-      $('#signs').css({ position: 'fixed', top: 0 });
-    }
-    else {
-      $('#signs').css('position','relative');
-    }
+		if (120 < windowTop) {
+			$('#signs').css({ position: 'fixed', top: 0 });
+    		}
+		else {
+
+			$('#signs').css({'position':'absolute', 'top':130});
+		}
+	});
+
+	$('#add_area').scroll(function(){
+		$(".nano").nanoScroller({ scrollLeft: 100 });
 	});
 });
 
@@ -254,6 +316,12 @@ $(function(){
 	</span>
 </script>
 
+<script id="page_temp" type="text/html">
+	<span class="page">
+		<a href="#{% templatetag openvariable %}page_number{% templatetag closevariable %}">{% templatetag openvariable %}page_number{% templatetag closevariable %}</a>
+	</span>
+</script>
+
 {% endblock head %}
 {% block header %}
 
@@ -277,19 +345,31 @@ $(function(){
 </div>
 <div id="profile_close"></div>
 </div>
-<div id="signs" data-position="top" data-intro='Here are your signs! To create new ones, write a title and press the "+" button. To assign them to repos, drag them over to the repo you want to tag.' data-step="3">
+<div 
+	id="signs" 
+	data-position="top" 
+	data-intro='Here are your signs! To create new ones, write a title and press the "+" button. To assign them to repos, drag them over to the repo you want to tag.' 
+	data-step="3"
+	style="height: 100%;">
 	{% if editable %}
-	<div>Add Sign:<div class="input-append">
-		<input type="text" style="font-size:normal;" class="span2" id="sign_name"></input><button class="btn" id="add_sign">+</button>
+	<div>Add Sign:<div class="input-append" style="margin-top: 7px;">
+		<input type="text" class="span2" id="sign_name"></input><button class="btn" id="add_sign">+</button>
 	
 	</div></div>
 	{% endif %}
 	<div class="sign">
 		<span class="main"><a href="/u/{{user.username}}">All Signs</a></span>
 	</div>
+	<div class="nano">
+	<div id="add_area" class="content">
+	</div>
+	</div>
 </div>
 <div id="repos" data-intro='Here be repos!' data-step='4' data-position="top">
 	<span class="placeholder">No repos here, or maybe they are just loading...</span>
+</div>
+<div id="pages">
+	
 </div>
 
 
