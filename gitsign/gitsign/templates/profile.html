@@ -120,11 +120,14 @@ function refresh_signs(temp){
 		$(".nano").nanoScroller({
 			preventPageScrolling:true
 		});
+
+	{% if editable %}
 		$('.sign .main').draggable({
 			helper:'clone',
 			zIndex:10000,
 			stacked:'.moving'
 		});
+		{% endif %}
 
 	});
 },temp);
@@ -151,6 +154,7 @@ function load_page(){
 		for(var i in data){
 			ich.repo_temp(data[i]).appendTo($('#repos'));
 		}
+	{% if editable %}
 		$('.repo').droppable({
 		'accept':'.sign .main',
 		'drop':function(event, ui ){
@@ -164,6 +168,7 @@ function load_page(){
 			refresh_signs(100);
 			}
 		});
+		{% endif %}
 	});
 }
 
