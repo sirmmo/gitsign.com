@@ -1,7 +1,7 @@
 from tastypie.resources import ModelResource
 from core.models import *
 from tastypie.api import Api
-from tastypie.authorization import DjangoAuthorization
+from tastypie.authorization import DjangoAuthorization, Authorization
 import json
 
 gitsign_api = Api(api_name='stargaze')
@@ -12,7 +12,7 @@ class SignResource(ModelResource):
 		queryset = Sign.objects.all()
 		resource_name = "sign"
 
-		authorization = DjangoAuthorization()
+		authorization = Authorization()
 
 	def obj_create(self, bundle, **kwargs):		
 		return super(SignResource, self).obj_create(bundle, owner =bundle.request.user)
@@ -22,13 +22,13 @@ class RepoResource(ModelResource):
 		queryset = Repo.objects.all()
 		resource_name = "repo"
 
-		authorization = DjangoAuthorization()
+		authorization = Authorization()
 
 class RSResource(ModelResource):
 	class Meta:
 		queryset = RS.objects.all()
 		resource_name = "reposign"
-		authorization = DjangoAuthorization()
+		authorization = Authorization()
 	def obj_create(self, bundle, **kwargs):	
 		data = bundle.request.body
 		data = json.loads(data)
